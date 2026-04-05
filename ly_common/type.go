@@ -86,3 +86,22 @@ func (b *BoolString) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+
+type StringArray []string
+
+func (sa *StringArray) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	if data[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		if s == "" {
+			return nil
+		}
+		return json.Unmarshal([]byte(s), (*[]string)(sa))
+	}
+	return json.Unmarshal(data, (*[]string)(sa))
+}
