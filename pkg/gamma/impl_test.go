@@ -199,10 +199,10 @@ func TestMarket_NegRiskFields(t *testing.T) {
 		"enableOrderBook": true,
 		"questionId": "0xq",
 		"volume24hr": 1000000,
-		"spread": "0.02",
-		"bestBid": "0.48",
-		"bestAsk": "0.52",
-		"lastTradePrice": "0.50",
+		"spread": 0.02,
+		"bestBid": 0.48,
+		"bestAsk": 0.52,
+		"lastTradePrice": 0.50,
 		"commentCount": 42,
 		"cyom": false
 	}`
@@ -223,8 +223,8 @@ func TestMarket_NegRiskFields(t *testing.T) {
 	if m.Volume24hr != 1000000 {
 		t.Errorf("Volume24hr = %v, want 1000000", m.Volume24hr)
 	}
-	if m.BestBid != "0.48" {
-		t.Errorf("BestBid = %s, want 0.48", m.BestBid)
+	if m.BestBid != 0.48 {
+		t.Errorf("BestBid = %f, want 0.48", m.BestBid)
 	}
 	if m.CommentCount != 42 {
 		t.Errorf("CommentCount = %d, want 42", m.CommentCount)

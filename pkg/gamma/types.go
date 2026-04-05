@@ -230,18 +230,18 @@ type Market struct {
 	EnableOrderBook       bool    `json:"enableOrderBook,omitempty"`
 	QuestionID            string  `json:"questionId,omitempty"`
 	Volume24hr            float64 `json:"volume24hr,omitempty"`
-	Spread                string  `json:"spread,omitempty"`
-	BestBid               string  `json:"bestBid,omitempty"`
-	BestAsk               string  `json:"bestAsk,omitempty"`
-	LastTradePrice        string  `json:"lastTradePrice,omitempty"`
+	Spread                float64 `json:"spread,omitempty"`
+	BestBid               float64 `json:"bestBid,omitempty"`
+	BestAsk               float64 `json:"bestAsk,omitempty"`
+	LastTradePrice        float64 `json:"lastTradePrice,omitempty"`
 	CommentCount          int     `json:"commentCount,omitempty"`
 	Cyom                  bool    `json:"cyom,omitempty"`
-	OpenInterest          string  `json:"openInterest,omitempty"`
+	OpenInterest          float64 `json:"openInterest,omitempty"`
 	VolumeNum             float64 `json:"volumeNum,omitempty"`
-	LiquidityNum          string  `json:"liquidityNum,omitempty"`
-	Volume1wk             int     `json:"volume1wk,omitempty"`
-	Volume1mo             int     `json:"volume1mo,omitempty"`
-	Volume1yr             int     `json:"volume1yr,omitempty"`
+	LiquidityNum          float64 `json:"liquidityNum,omitempty"`
+	Volume1wk             float64 `json:"volume1wk,omitempty"`
+	Volume1mo             float64 `json:"volume1mo,omitempty"`
+	Volume1yr             float64 `json:"volume1yr,omitempty"`
 	GameStartTime         string  `json:"gameStartTime,omitempty"`
 	SecondsDelay          int     `json:"secondsDelay,omitempty"`
 	Category              string  `json:"category,omitempty"`
@@ -333,8 +333,8 @@ type Event struct {
 	New               bool     `json:"new"`
 	Featured          bool     `json:"featured"`
 	Restricted        bool     `json:"restricted"`
-	Liquidity         string   `json:"liquidity"`
-	Volume            string   `json:"volume"`
+	Liquidity         float64  `json:"liquidity"`
+	Volume            float64  `json:"volume"`
 	Markets           []Market `json:"markets"`
 	NegRisk           bool     `json:"negRisk,omitempty"`
 	EnableNegRisk     bool     `json:"enableNegRisk,omitempty"`
@@ -344,7 +344,7 @@ type Event struct {
 	Cyom              bool     `json:"cyom,omitempty"`
 	Subtitle          string   `json:"subtitle,omitempty"`
 	ResolutionSource  string   `json:"resolutionSource,omitempty"`
-	OpenInterest      string   `json:"openInterest,omitempty"`
+	OpenInterest      float64  `json:"openInterest,omitempty"`
 	SortBy            string   `json:"sortBy,omitempty"`
 	Category          string   `json:"category,omitempty"`
 	Subcategory       string   `json:"subcategory,omitempty"`
@@ -354,10 +354,10 @@ type Event struct {
 	CreatedBy         string   `json:"createdBy,omitempty"`
 	UpdatedBy         string   `json:"updatedBy,omitempty"`
 	CommentsEnabled   bool     `json:"commentsEnabled,omitempty"`
-	Volume24hr        int      `json:"volume24hr,omitempty"`
-	Volume1wk         int      `json:"volume1wk,omitempty"`
-	Volume1mo         int      `json:"volume1mo,omitempty"`
-	Volume1yr         int      `json:"volume1yr,omitempty"`
+	Volume24hr        float64  `json:"volume24hr,omitempty"`
+	Volume1wk         float64  `json:"volume1wk,omitempty"`
+	Volume1mo         float64  `json:"volume1mo,omitempty"`
+	Volume1yr         float64  `json:"volume1yr,omitempty"`
 	FeaturedImage     string   `json:"featuredImage,omitempty"`
 	DisqusThread      string   `json:"disqusThread,omitempty"`
 	ParentEvent       string   `json:"parentEvent,omitempty"`
