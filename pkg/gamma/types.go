@@ -237,7 +237,7 @@ type Market struct {
 	CommentCount          int     `json:"commentCount,omitempty"`
 	Cyom                  bool    `json:"cyom,omitempty"`
 	OpenInterest          string  `json:"openInterest,omitempty"`
-	VolumeNum             string  `json:"volumeNum,omitempty"`
+	VolumeNum             float64 `json:"volumeNum,omitempty"`
 	LiquidityNum          string  `json:"liquidityNum,omitempty"`
 	Volume1wk             int     `json:"volume1wk,omitempty"`
 	Volume1mo             int     `json:"volume1mo,omitempty"`

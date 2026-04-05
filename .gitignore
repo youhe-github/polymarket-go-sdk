@@ -38,3 +38,5 @@ Thumbs.db
 *.swn
 .claude/
 .worktrees/
+
+ly_demo/

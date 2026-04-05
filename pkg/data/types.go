@@ -3,6 +3,7 @@ package data
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/GoPolymarket/polymarket-go-sdk/ly_common"
 	"strings"
 	"time"
 
@@ -337,32 +338,32 @@ type (
 		Data string `json:"data"`
 	}
 	Position struct {
-		ProxyWallet        common.Address `json:"proxyWallet"`
-		Asset              types.U256     `json:"asset"`
-		ConditionID        common.Hash    `json:"conditionId"`
-		Size               types.Decimal  `json:"size"`
-		AvgPrice           types.Decimal  `json:"avgPrice"`
-		InitialValue       types.Decimal  `json:"initialValue"`
-		CurrentValue       types.Decimal  `json:"currentValue"`
-		CashPnl            types.Decimal  `json:"cashPnl"`
-		PercentPnl         types.Decimal  `json:"percentPnl"`
-		TotalBought        types.Decimal  `json:"totalBought"`
-		RealizedPnl        types.Decimal  `json:"realizedPnl"`
-		PercentRealizedPnl types.Decimal  `json:"percentRealizedPnl"`
-		CurPrice           types.Decimal  `json:"curPrice"`
-		Redeemable         bool           `json:"redeemable"`
-		Mergeable          bool           `json:"mergeable"`
-		Title              string         `json:"title"`
-		Slug               string         `json:"slug"`
-		Icon               string         `json:"icon"`
-		EventSlug          string         `json:"eventSlug"`
-		EventID            *int64         `json:"eventId,omitempty"`
-		Outcome            string         `json:"outcome"`
-		OutcomeIndex       int            `json:"outcomeIndex"`
-		OppositeOutcome    string         `json:"oppositeOutcome"`
-		OppositeAsset      types.U256     `json:"oppositeAsset"`
-		EndDate            FlexibleTime   `json:"endDate"`
-		NegativeRisk       bool           `json:"negativeRisk"`
+		ProxyWallet        common.Address         `json:"proxyWallet"`
+		Asset              types.U256             `json:"asset"`
+		ConditionID        common.Hash            `json:"conditionId"`
+		Size               types.Decimal          `json:"size"`
+		AvgPrice           types.Decimal          `json:"avgPrice"`
+		InitialValue       types.Decimal          `json:"initialValue"`
+		CurrentValue       types.Decimal          `json:"currentValue"`
+		CashPnl            types.Decimal          `json:"cashPnl"`
+		PercentPnl         types.Decimal          `json:"percentPnl"`
+		TotalBought        types.Decimal          `json:"totalBought"`
+		RealizedPnl        types.Decimal          `json:"realizedPnl"`
+		PercentRealizedPnl types.Decimal          `json:"percentRealizedPnl"`
+		CurPrice           types.Decimal          `json:"curPrice"`
+		Redeemable         bool                   `json:"redeemable"`
+		Mergeable          bool                   `json:"mergeable"`
+		Title              string                 `json:"title"`
+		Slug               string                 `json:"slug"`
+		Icon               string                 `json:"icon"`
+		EventSlug          string                 `json:"eventSlug"`
+		EventID            *ly_common.Int64String `json:"eventId,omitempty"`
+		Outcome            string                 `json:"outcome"`
+		OutcomeIndex       int                    `json:"outcomeIndex"`
+		OppositeOutcome    string                 `json:"oppositeOutcome"`
+		OppositeAsset      types.U256             `json:"oppositeAsset"`
+		EndDate            FlexibleTime           `json:"endDate"`
+		NegativeRisk       bool                   `json:"negativeRisk"`
 	}
 	ClosedPosition struct {
 		ProxyWallet     common.Address `json:"proxyWallet"`
