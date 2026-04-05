@@ -31,6 +31,14 @@ func (s *stubClient) OrderBook(ctx context.Context, req *clobtypes.BookRequest) 
 	return s.book, nil
 }
 
+func (s *stubClient) OrderBookV2(ctx context.Context, req *clobtypes.BookRequest) (clobtypes.OrderBookV2Response, error) {
+	return clobtypes.OrderBookV2Response{}, nil
+}
+
+func (s *stubClient) OrderBooksV2(ctx context.Context, req *clobtypes.BooksRequest) (clobtypes.OrderBooksV2Response, error) {
+	return clobtypes.OrderBooksV2Response{}, nil
+}
+
 func (s *stubClient) TickSize(ctx context.Context, req *clobtypes.TickSizeRequest) (clobtypes.TickSizeResponse, error) {
 	return clobtypes.TickSizeResponse{MinimumTickSize: s.tickSize}, nil
 }

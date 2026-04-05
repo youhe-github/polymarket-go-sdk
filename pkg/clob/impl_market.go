@@ -130,6 +130,37 @@ func (c *clientImpl) OrderBooks(ctx context.Context, req *clobtypes.BooksRequest
 	return resp, mapError(err)
 }
 
+func (c *clientImpl) OrderBookV2(ctx context.Context, req *clobtypes.BookRequest) (clobtypes.OrderBookV2Response, error) {
+	q := url.Values{}
+	if req != nil {
+		q.Set("token_id", req.TokenID)
+		if req.Side != "" {
+			q.Set("side", req.Side)
+		}
+	}
+	var resp clobtypes.OrderBookV2Response
+	err := c.httpClient.Get(ctx, "/book", q, &resp)
+	return resp, mapError(err)
+}
+
+func (c *clientImpl) OrderBooksV2(ctx context.Context, req *clobtypes.BooksRequest) (clobtypes.OrderBooksV2Response, error) {
+	var resp clobtypes.OrderBooksV2Response
+	var body interface{}
+	if req != nil {
+		if len(req.Requests) > 0 {
+			body = req.Requests
+		} else if len(req.TokenIDs) > 0 {
+			requests := make([]clobtypes.BookRequest, 0, len(req.TokenIDs))
+			for _, id := range req.TokenIDs {
+				requests = append(requests, clobtypes.BookRequest{TokenID: id})
+			}
+			body = requests
+		}
+	}
+	err := c.httpClient.Post(ctx, "/books", body, &resp)
+	return resp, mapError(err)
+}
+
 func (c *clientImpl) Midpoint(ctx context.Context, req *clobtypes.MidpointRequest) (clobtypes.MidpointResponse, error) {
 	q := url.Values{}
 	if req != nil {

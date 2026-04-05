@@ -83,6 +83,12 @@ type Client interface {
 	OrderBook(ctx context.Context, req *clobtypes.BookRequest) (clobtypes.OrderBookResponse, error)
 	// OrderBooks retrieves multiple order books in a single batch request.
 	OrderBooks(ctx context.Context, req *clobtypes.BooksRequest) (clobtypes.OrderBooksResponse, error)
+
+	// OrderBookV2 retrieves the current L2 order book for a specific token with float64 prices and sizes.
+	OrderBookV2(ctx context.Context, req *clobtypes.BookRequest) (clobtypes.OrderBookV2Response, error)
+	// OrderBooksV2 retrieves multiple order books in a single batch request with float64 prices and sizes.
+	OrderBooksV2(ctx context.Context, req *clobtypes.BooksRequest) (clobtypes.OrderBooksV2Response, error)
+
 	// Midpoint retrieves the current mid-price for a token.
 	Midpoint(ctx context.Context, req *clobtypes.MidpointRequest) (clobtypes.MidpointResponse, error)
 	// Midpoints retrieves multiple mid-prices in a batch request.

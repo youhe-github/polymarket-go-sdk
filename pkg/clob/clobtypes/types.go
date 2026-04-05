@@ -293,7 +293,11 @@ type (
 	MarketResponse     Market
 	OrderBookResponse  OrderBook
 	OrderBooksResponse []OrderBook
-	MidpointResponse   struct {
+
+	OrderBookV2Response  OrderBookV2
+	OrderBooksV2Response []OrderBookV2
+
+	MidpointResponse struct {
 		Midpoint string `json:"midpoint"`
 	}
 	MidpointsResponse []MidpointResponse
@@ -471,6 +475,24 @@ type (
 	PriceLevel struct {
 		Price string `json:"price"`
 		Size  string `json:"size"`
+	}
+
+	OrderBookV2 struct {
+		Market         string         `json:"market"`
+		AssetID        string         `json:"asset_id"`
+		Timestamp      string         `json:"timestamp"`
+		Hash           string         `json:"hash"`
+		Bids           []PriceLevelV2 `json:"bids"`
+		Asks           []PriceLevelV2 `json:"asks"`
+		MinOrderSize   string         `json:"min_order_size"`
+		TickSize       string         `json:"tick_size"`
+		NegRisk        bool           `json:"neg_risk"`
+		LastTradePrice string         `json:"last_trade_price"`
+	}
+
+	PriceLevelV2 struct {
+		Price float64 `json:"price,string"`
+		Size  float64 `json:"size,string"`
 	}
 
 	Order struct {
