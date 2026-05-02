@@ -29,7 +29,12 @@ type Client struct {
 	CTF    ctf.Client
 
 	builderCfg *auth.BuilderConfig
-	InitErrors []error
+
+	clobOrderVersion int
+	clobExchangeAddr string
+	clobNegRiskAddr  string
+	clobBuilderCode  string
+	InitErrors       []error
 }
 
 // InitError records a non-fatal client initialization failure for a sub-service.
@@ -80,6 +85,17 @@ func newClient(strict bool, opts ...Option) (*Client, error) {
 		clobTransport.SetUserAgent(c.Config.UserAgent)
 		clobTransport.SetUseServerTime(c.Config.UseServerTime)
 		c.CLOB = clob.NewClientWithGeoblock(clobTransport, c.Config.BaseURLs.Geoblock)
+	}
+	if c.CLOB != nil {
+		if c.clobOrderVersion != 0 {
+			c.CLOB = c.CLOB.WithOrderVersion(c.clobOrderVersion)
+		}
+		if c.clobExchangeAddr != "" || c.clobNegRiskAddr != "" {
+			c.CLOB = c.CLOB.WithExchangeAddresses(c.clobExchangeAddr, c.clobNegRiskAddr)
+		}
+		if c.clobBuilderCode != "" {
+			c.CLOB = c.CLOB.WithBuilderCode(c.clobBuilderCode)
+		}
 	}
 	if c.Gamma == nil {
 		gammaTransport := transport.NewClient(c.Config.HTTPClient, c.Config.BaseURLs.Gamma)

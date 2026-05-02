@@ -165,6 +165,21 @@ func TestDeriveWalletAddresses(t *testing.T) {
 	}
 }
 
+func TestSignatureTypeValues(t *testing.T) {
+	if SignatureEOA != 0 {
+		t.Fatalf("SignatureEOA = %d, want 0", SignatureEOA)
+	}
+	if SignatureProxy != 1 {
+		t.Fatalf("SignatureProxy = %d, want 1", SignatureProxy)
+	}
+	if SignatureGnosisSafe != 2 {
+		t.Fatalf("SignatureGnosisSafe = %d, want 2", SignatureGnosisSafe)
+	}
+	if SignaturePoly1271 != 3 {
+		t.Fatalf("SignaturePoly1271 = %d, want 3", SignaturePoly1271)
+	}
+}
+
 func TestBuildL1Headers(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	hexKey := fmt.Sprintf("%x", crypto.FromECDSA(key))
@@ -243,7 +258,7 @@ func TestBuilderConfig(t *testing.T) {
 	// The implementation expects a JSON map
 	// And checks keys like POLY_BUILDER_API_KEY
 	mockBody := `{"POLY_BUILDER_API_KEY": "mock-key", "POLY_BUILDER_PASSPHRASE": "mock-pass", "POLY_BUILDER_SIGNATURE": "mock-sig", "POLY_BUILDER_TIMESTAMP": "123"}`
-	
+
 	mockResp.Body = io.NopCloser(strings.NewReader(mockBody))
 
 	mockDoer := &mockBuilderDoer{
@@ -252,7 +267,7 @@ func TestBuilderConfig(t *testing.T) {
 
 	remoteMock := &BuilderConfig{
 		Remote: &BuilderRemoteConfig{
-			Host: "http://mock-host",
+			Host:       "http://mock-host",
 			HTTPClient: mockDoer,
 		},
 	}

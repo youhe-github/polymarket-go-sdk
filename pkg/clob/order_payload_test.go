@@ -62,6 +62,56 @@ func TestBuildOrderPayloadCasingAndOptions(t *testing.T) {
 	}
 }
 
+func TestBuildOrderPayloadV2Fields(t *testing.T) {
+	sigType := 0
+	order := clobtypes.SignedOrder{
+		Order: clobtypes.Order{
+			Version:       2,
+			Salt:          types.U256{Int: big.NewInt(1)},
+			Maker:         common.HexToAddress("0x0000000000000000000000000000000000000001"),
+			Signer:        common.HexToAddress("0x0000000000000000000000000000000000000002"),
+			Taker:         common.HexToAddress("0x0000000000000000000000000000000000000000"),
+			TokenID:       types.U256{Int: big.NewInt(123)},
+			MakerAmount:   decimal.NewFromInt(100),
+			TakerAmount:   decimal.NewFromInt(50),
+			Side:          "BUY",
+			Expiration:    types.U256{Int: big.NewInt(99)},
+			Timestamp:     types.U256{Int: big.NewInt(1710000000123)},
+			Metadata:      Bytes32Zero,
+			Builder:       "0x1111111111111111111111111111111111111111111111111111111111111111",
+			SignatureType: &sigType,
+		},
+		Signature: "0xsig",
+		Owner:     "owner",
+		OrderType: clobtypes.OrderTypeGTC,
+	}
+
+	payload, err := buildOrderPayload(&order)
+	if err != nil {
+		t.Fatalf("buildOrderPayload failed: %v", err)
+	}
+	orderMap := payload["order"].(map[string]interface{})
+	for _, key := range []string{"timestamp", "metadata", "builder", "expiration", "signature"} {
+		if _, ok := orderMap[key]; !ok {
+			t.Fatalf("v2 payload missing %s", key)
+		}
+	}
+	for _, key := range []string{"nonce", "feeRateBps"} {
+		if _, ok := orderMap[key]; ok {
+			t.Fatalf("v2 payload should not include %s", key)
+		}
+	}
+	if orderMap["timestamp"] != "1710000000123" {
+		t.Fatalf("timestamp mismatch: got %v", orderMap["timestamp"])
+	}
+	if orderMap["metadata"] != Bytes32Zero {
+		t.Fatalf("metadata mismatch: got %v", orderMap["metadata"])
+	}
+	if orderMap["builder"] != strings.ToLower(order.Order.Builder) {
+		t.Fatalf("builder mismatch: got %v", orderMap["builder"])
+	}
+}
+
 func TestBuildOrderPayloadPostOnlyValidation(t *testing.T) {
 	sigType := 0
 	order := clobtypes.SignedOrder{

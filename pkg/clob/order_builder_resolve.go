@@ -83,6 +83,20 @@ func (b *OrderBuilder) resolveFeeRateBps(ctx context.Context, tokenID string) (i
 	return userFee, nil
 }
 
+func (b *OrderBuilder) resolveNegRisk(ctx context.Context, tokenID string) (bool, error) {
+	if b.negRisk != nil {
+		return *b.negRisk, nil
+	}
+	if !clientHasTransport(b.client) {
+		return false, nil
+	}
+	resp, err := b.client.NegRisk(ctx, &clobtypes.NegRiskRequest{TokenID: tokenID})
+	if err != nil {
+		return false, fmt.Errorf("neg-risk lookup failed: %w", err)
+	}
+	return resp.NegRisk, nil
+}
+
 func (b *OrderBuilder) resolveMarketPrice(ctx context.Context, side string, orderType clobtypes.OrderType, amount *marketAmount) (decimal.Decimal, error) {
 	if amount == nil {
 		return decimal.Decimal{}, fmt.Errorf("amount is required")

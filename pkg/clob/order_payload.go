@@ -78,6 +78,33 @@ func orderWithSignature(order *clobtypes.SignedOrder) (map[string]interface{}, e
 		return nil, err
 	}
 
+	if orderVersion(&order.Order, 2) == 2 {
+		metadata, err := normalizeBytes32(order.Order.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("metadata: %w", err)
+		}
+		builderCode, err := normalizeBytes32(order.Order.Builder)
+		if err != nil {
+			return nil, fmt.Errorf("builder: %w", err)
+		}
+		return map[string]interface{}{
+			"salt":          salt,
+			"maker":         order.Order.Maker.Hex(),
+			"signer":        order.Order.Signer.Hex(),
+			"taker":         order.Order.Taker.Hex(),
+			"tokenId":       u256String(order.Order.TokenID),
+			"makerAmount":   decimalString(order.Order.MakerAmount),
+			"takerAmount":   decimalString(order.Order.TakerAmount),
+			"side":          side,
+			"signatureType": sigType,
+			"timestamp":     u256String(order.Order.Timestamp),
+			"expiration":    u256String(order.Order.Expiration),
+			"metadata":      metadata,
+			"builder":       builderCode,
+			"signature":     order.Signature,
+		}, nil
+	}
+
 	return map[string]interface{}{
 		"salt":          salt,
 		"maker":         order.Order.Maker.Hex(),

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
@@ -33,6 +34,13 @@ type OrderBuilder struct {
 	taker         *common.Address
 	nonce         *big.Int
 	expiration    *big.Int
+	timestamp     *big.Int
+	metadata      string
+	builderCode   string
+	negRisk       *bool
+	version       int
+	exchangeAddr  string
+	negRiskAddr   string
 	signatureType *auth.SignatureType
 	postOnly      *bool
 
@@ -73,6 +81,13 @@ func NewOrderBuilder(client Client, signer auth.Signer) *OrderBuilder {
 			builder.funder = defaults.funder
 		}
 		builder.saltGenerator = defaults.saltGenerator
+		builder.version = defaults.orderVersion
+		builder.exchangeAddr = defaults.exchangeAddr
+		builder.negRiskAddr = defaults.negRiskAddr
+		builder.builderCode = defaults.builderCode
+	}
+	if builder.version == 0 {
+		builder.version = 2
 	}
 	return builder
 }
@@ -122,6 +137,43 @@ func (b *OrderBuilder) FeeRateBps(bps float64) *OrderBuilder {
 // FeeRateBpsDec sets the fee rate in basis points using a decimal.Decimal.
 func (b *OrderBuilder) FeeRateBpsDec(bps decimal.Decimal) *OrderBuilder {
 	b.feeRateBps = bps
+	return b
+}
+
+// Metadata sets the V2 order metadata bytes32 value.
+func (b *OrderBuilder) Metadata(metadata string) *OrderBuilder {
+	b.metadata = metadata
+	return b
+}
+
+// BuilderCode sets the V2 builder code bytes32 value.
+func (b *OrderBuilder) BuilderCode(builderCode string) *OrderBuilder {
+	b.builderCode = builderCode
+	return b
+}
+
+// TimestampMillis overrides the V2 order timestamp in Unix milliseconds.
+func (b *OrderBuilder) TimestampMillis(timestamp int64) *OrderBuilder {
+	b.timestamp = big.NewInt(timestamp)
+	return b
+}
+
+// Version selects the order signing protocol version.
+func (b *OrderBuilder) Version(version int) *OrderBuilder {
+	b.version = version
+	return b
+}
+
+// NegRisk overrides the negative-risk market flag used to choose the exchange contract.
+func (b *OrderBuilder) NegRisk(negRisk bool) *OrderBuilder {
+	b.negRisk = &negRisk
+	return b
+}
+
+// VerifyingContracts overrides the normal and negative-risk exchange contracts.
+func (b *OrderBuilder) VerifyingContracts(exchangeAddress, negRiskExchangeAddress string) *OrderBuilder {
+	b.exchangeAddr = exchangeAddress
+	b.negRiskAddr = negRiskExchangeAddress
 	return b
 }
 
@@ -371,6 +423,11 @@ func (b *OrderBuilder) BuildMarketWithContext(ctx context.Context) (*clobtypes.S
 		nonce = b.nonce
 	}
 
+	timestamp, metadata, builderCode, negRisk, err := b.v2Fields(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	salt, err := b.generateSalt()
 	if err != nil {
 		return nil, err
@@ -389,6 +446,17 @@ func (b *OrderBuilder) BuildMarketWithContext(ctx context.Context) (*clobtypes.S
 		FeeRateBps:    types.Decimal(decimal.NewFromInt(feeRateBps)),
 		Nonce:         types.U256{Int: nonce},
 		SignatureType: &sigType,
+		Timestamp:     types.U256{Int: timestamp},
+		Metadata:      metadata,
+		Builder:       builderCode,
+		Version:       b.resolvedVersion(),
+		NegRisk:       &negRisk,
+	}
+	if b.exchangeAddr != "" {
+		order.VerifyingContract = b.exchangeAddr
+	}
+	if negRisk && b.negRiskAddr != "" {
+		order.VerifyingContract = b.negRiskAddr
 	}
 
 	return &clobtypes.SignableOrder{
@@ -495,6 +563,11 @@ func (b *OrderBuilder) buildLimit(ctx context.Context) (*clobtypes.Order, error)
 		nonce = b.nonce
 	}
 
+	timestamp, metadata, builderCode, negRisk, err := b.v2Fields(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	salt, err := b.generateSalt()
 	if err != nil {
 		return nil, err
@@ -508,7 +581,7 @@ func (b *OrderBuilder) buildLimit(ctx context.Context) (*clobtypes.Order, error)
 		expiration = b.expiration
 	}
 
-	return &clobtypes.Order{
+	order := &clobtypes.Order{
 		Salt:          types.U256{Int: salt},
 		Signer:        b.signer.Address(),
 		Maker:         maker,
@@ -521,5 +594,47 @@ func (b *OrderBuilder) buildLimit(ctx context.Context) (*clobtypes.Order, error)
 		FeeRateBps:    types.Decimal(decimal.NewFromInt(feeRateBps)),
 		Nonce:         types.U256{Int: nonce},
 		SignatureType: &sigType,
-	}, nil
+		Timestamp:     types.U256{Int: timestamp},
+		Metadata:      metadata,
+		Builder:       builderCode,
+		Version:       b.resolvedVersion(),
+		NegRisk:       &negRisk,
+	}
+	if b.exchangeAddr != "" {
+		order.VerifyingContract = b.exchangeAddr
+	}
+	if negRisk && b.negRiskAddr != "" {
+		order.VerifyingContract = b.negRiskAddr
+	}
+	return order, nil
+}
+
+func (b *OrderBuilder) resolvedVersion() int {
+	if b.version == 0 {
+		return 2
+	}
+	return b.version
+}
+
+func (b *OrderBuilder) v2Fields(ctx context.Context) (*big.Int, string, string, bool, error) {
+	timestamp := b.timestamp
+	if timestamp == nil || timestamp.Sign() == 0 {
+		timestamp = big.NewInt(time.Now().UnixMilli())
+	}
+	if timestamp.Sign() < 0 {
+		return nil, "", "", false, fmt.Errorf("timestamp must be non-negative")
+	}
+	metadata, err := normalizeBytes32(b.metadata)
+	if err != nil {
+		return nil, "", "", false, fmt.Errorf("metadata: %w", err)
+	}
+	builderCode, err := normalizeBytes32(b.builderCode)
+	if err != nil {
+		return nil, "", "", false, fmt.Errorf("builder: %w", err)
+	}
+	negRisk, err := b.resolveNegRisk(ctx, b.tokenID)
+	if err != nil {
+		return nil, "", "", false, err
+	}
+	return timestamp, metadata, builderCode, negRisk, nil
 }

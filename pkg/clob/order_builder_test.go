@@ -238,11 +238,14 @@ func TestOrderBuilderDefaultsFromClient(t *testing.T) {
 	stub := newStubClient()
 	stub.tickSize = 0.01
 	stub.feeRate = 0
+	stub.negRisk = true
 
 	signer := mustSigner(t)
 	funder := common.HexToAddress("0x1111111111111111111111111111111111111111")
 	stub.clientImpl.signatureType = auth.SignatureProxy
 	stub.clientImpl.funder = &funder
+	stub.clientImpl.orderVersion = 2
+	stub.clientImpl.builderCode = "0x1111111111111111111111111111111111111111111111111111111111111111"
 	stub.clientImpl.saltGenerator = func() (*big.Int, error) {
 		return big.NewInt(42), nil
 	}
@@ -264,6 +267,21 @@ func TestOrderBuilderDefaultsFromClient(t *testing.T) {
 	}
 	if signable.Order.Salt.Int == nil || signable.Order.Salt.Int.Int64() != 42 {
 		t.Fatalf("salt mismatch: got %v", signable.Order.Salt.Int)
+	}
+	if signable.Order.Version != 2 {
+		t.Fatalf("version mismatch: got %d", signable.Order.Version)
+	}
+	if signable.Order.NegRisk == nil || !*signable.Order.NegRisk {
+		t.Fatalf("neg risk mismatch: %+v", signable.Order.NegRisk)
+	}
+	if signable.Order.Builder != strings.ToLower(stub.clientImpl.builderCode) {
+		t.Fatalf("builder code mismatch: got %s", signable.Order.Builder)
+	}
+	if signable.Order.Metadata != Bytes32Zero {
+		t.Fatalf("metadata mismatch: got %s", signable.Order.Metadata)
+	}
+	if signable.Order.Timestamp.Int == nil || signable.Order.Timestamp.Int.Sign() <= 0 {
+		t.Fatalf("timestamp missing: %v", signable.Order.Timestamp.Int)
 	}
 }
 

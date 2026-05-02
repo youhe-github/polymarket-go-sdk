@@ -488,7 +488,17 @@ type (
 		Side          string        `json:"side"` // BUY/SELL
 		FeeRateBps    types.Decimal `json:"fee_rate_bps"`
 		Nonce         types.U256    `json:"nonce"`
-		SignatureType *int          `json:"signature_type,omitempty"` // 0=EOA, 1=Proxy, 2=Safe
+		SignatureType *int          `json:"signature_type,omitempty"` // 0=EOA, 1=Proxy, 2=Safe, 3=EIP-1271
+		Timestamp     types.U256    `json:"timestamp,omitempty"`
+		Metadata      string        `json:"metadata,omitempty"`
+		Builder       string        `json:"builder,omitempty"`
+
+		// Version selects the order signing protocol. Defaults to 2.
+		Version int `json:"-"`
+		// NegRisk selects the negative-risk exchange verifying contract.
+		NegRisk *bool `json:"-"`
+		// VerifyingContract overrides the exchange contract used in the EIP-712 domain.
+		VerifyingContract string `json:"-"`
 	}
 
 	PriceHistoryPoint struct {

@@ -59,6 +59,37 @@ func WithCLOB(client clob.Client) Option {
 	}
 }
 
+// WithCLOBOrderVersion sets the default CLOB order signing protocol version.
+func WithCLOBOrderVersion(version int) Option {
+	return func(c *Client) {
+		c.clobOrderVersion = version
+		if c.CLOB != nil {
+			c.CLOB = c.CLOB.WithOrderVersion(version)
+		}
+	}
+}
+
+// WithCLOBExchangeAddresses overrides the CLOB exchange contracts used in EIP-712 order domains.
+func WithCLOBExchangeAddresses(exchangeAddress, negRiskExchangeAddress string) Option {
+	return func(c *Client) {
+		c.clobExchangeAddr = exchangeAddress
+		c.clobNegRiskAddr = negRiskExchangeAddress
+		if c.CLOB != nil {
+			c.CLOB = c.CLOB.WithExchangeAddresses(exchangeAddress, negRiskExchangeAddress)
+		}
+	}
+}
+
+// WithCLOBBuilderCode sets the default V2 builder code embedded in signed orders.
+func WithCLOBBuilderCode(builderCode string) Option {
+	return func(c *Client) {
+		c.clobBuilderCode = builderCode
+		if c.CLOB != nil {
+			c.CLOB = c.CLOB.WithBuilderCode(builderCode)
+		}
+	}
+}
+
 func WithCLOBWS(client ws.Client) Option {
 	return func(c *Client) {
 		c.CLOBWS = client

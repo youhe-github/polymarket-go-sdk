@@ -33,6 +33,12 @@ type Client interface {
 	WithFunder(funder types.Address) Client
 	// WithSaltGenerator sets the default salt generator used for new orders.
 	WithSaltGenerator(gen SaltGenerator) Client
+	// WithOrderVersion sets the default order signing protocol version. Defaults to 2.
+	WithOrderVersion(version int) Client
+	// WithExchangeAddresses overrides the exchange contracts used for order EIP-712 domains.
+	WithExchangeAddresses(exchangeAddress, negRiskExchangeAddress string) Client
+	// WithBuilderCode sets the default V2 builder code embedded in signed orders.
+	WithBuilderCode(builderCode string) Client
 	// WithUseServerTime configures the client to synchronize with server time for request signing.
 	WithUseServerTime(use bool) Client
 	// WithGeoblockHost overrides the host used for checking geoblocking status.

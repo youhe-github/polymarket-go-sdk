@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/shopspring/decimal"
 
 	"github.com/GoPolymarket/polymarket-go-sdk/pkg/auth"
@@ -14,6 +15,22 @@ import (
 	"github.com/GoPolymarket/polymarket-go-sdk/pkg/transport"
 	"github.com/GoPolymarket/polymarket-go-sdk/pkg/types"
 )
+
+type recordingSigner struct {
+	auth.Signer
+	domain      *apitypes.TypedDataDomain
+	typesDef    apitypes.Types
+	message     apitypes.TypedDataMessage
+	primaryType string
+}
+
+func (s *recordingSigner) SignTypedData(domain *apitypes.TypedDataDomain, typesDef apitypes.Types, message apitypes.TypedDataMessage, primaryType string) ([]byte, error) {
+	s.domain = domain
+	s.typesDef = typesDef
+	s.message = message
+	s.primaryType = primaryType
+	return []byte{1, 2, 3}, nil
+}
 
 func TestOrderManagementMethods(t *testing.T) {
 	signer, _ := auth.NewPrivateKeySigner("0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318", 137)
@@ -238,6 +255,96 @@ func TestSignOrderDefaults(t *testing.T) {
 	}
 	if signed.Order.Salt.Int == nil || signed.Order.Salt.Int.Int64() != 7 {
 		t.Fatalf("salt mismatch: got %v", signed.Order.Salt.Int)
+	}
+}
+
+func TestSignOrderV2TypedData(t *testing.T) {
+	baseSigner, _ := auth.NewPrivateKeySigner("0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318", 137)
+	signer := &recordingSigner{Signer: baseSigner}
+	apiKey := &auth.APIKey{Key: "k1", Secret: "s1", Passphrase: "p1"}
+	sigType := int(auth.SignatureEOA)
+	negRisk := true
+
+	order := &clobtypes.Order{
+		Salt:          types.U256{Int: big.NewInt(7)},
+		Maker:         signer.Address(),
+		Signer:        signer.Address(),
+		Taker:         common.Address{},
+		TokenID:       types.U256{Int: big.NewInt(1)},
+		MakerAmount:   decimal.NewFromInt(10),
+		TakerAmount:   decimal.NewFromInt(5),
+		Side:          "BUY",
+		Expiration:    types.U256{Int: big.NewInt(123)},
+		FeeRateBps:    decimal.NewFromInt(99),
+		Nonce:         types.U256{Int: big.NewInt(11)},
+		SignatureType: &sigType,
+		Timestamp:     types.U256{Int: big.NewInt(1710000000123)},
+		Metadata:      Bytes32Zero,
+		Builder:       "0x1111111111111111111111111111111111111111111111111111111111111111",
+		NegRisk:       &negRisk,
+	}
+
+	signed, err := signOrderWithCreds(signer, apiKey, order, signOptions{})
+	if err != nil {
+		t.Fatalf("signOrderWithCreds failed: %v", err)
+	}
+	if signed.Order.Version != 2 {
+		t.Fatalf("version mismatch: got %d", signed.Order.Version)
+	}
+	if signer.domain == nil || signer.domain.Version != "2" {
+		t.Fatalf("expected v2 domain, got %+v", signer.domain)
+	}
+	if signer.domain.VerifyingContract != PolygonNegRiskExchangeV2 {
+		t.Fatalf("verifying contract mismatch: got %s", signer.domain.VerifyingContract)
+	}
+	if _, ok := signer.message["taker"]; ok {
+		t.Fatal("v2 typed data should not include taker")
+	}
+	if _, ok := signer.message["nonce"]; ok {
+		t.Fatal("v2 typed data should not include nonce")
+	}
+	if _, ok := signer.message["feeRateBps"]; ok {
+		t.Fatal("v2 typed data should not include feeRateBps")
+	}
+	if _, ok := signer.message["expiration"]; ok {
+		t.Fatal("v2 typed data should not include expiration")
+	}
+	if signer.message["metadata"] != Bytes32Zero {
+		t.Fatalf("metadata mismatch: got %v", signer.message["metadata"])
+	}
+	if signer.message["builder"] != strings.ToLower(order.Builder) {
+		t.Fatalf("builder mismatch: got %v", signer.message["builder"])
+	}
+}
+
+func TestSignOrderV1StillAvailable(t *testing.T) {
+	baseSigner, _ := auth.NewPrivateKeySigner("0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318", 137)
+	signer := &recordingSigner{Signer: baseSigner}
+	apiKey := &auth.APIKey{Key: "k1", Secret: "s1", Passphrase: "p1"}
+
+	order := &clobtypes.Order{
+		Version:     1,
+		Salt:        types.U256{Int: big.NewInt(7)},
+		Maker:       signer.Address(),
+		Signer:      signer.Address(),
+		TokenID:     types.U256{Int: big.NewInt(1)},
+		MakerAmount: decimal.NewFromInt(10),
+		TakerAmount: decimal.NewFromInt(5),
+		Side:        "SELL",
+		Expiration:  types.U256{Int: big.NewInt(123)},
+		Nonce:       types.U256{Int: big.NewInt(11)},
+	}
+
+	if _, err := signOrderWithCreds(signer, apiKey, order, signOptions{}); err != nil {
+		t.Fatalf("signOrderWithCreds failed: %v", err)
+	}
+	if signer.domain == nil || signer.domain.Version != "1" {
+		t.Fatalf("expected v1 domain, got %+v", signer.domain)
+	}
+	for _, key := range []string{"taker", "nonce", "feeRateBps", "expiration"} {
+		if _, ok := signer.message[key]; !ok {
+			t.Fatalf("v1 typed data missing %s", key)
+		}
 	}
 }
 

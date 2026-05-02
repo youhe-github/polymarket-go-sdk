@@ -27,6 +27,10 @@ type clientImpl struct {
 	authNonce      *int64
 	funder         *types.Address
 	saltGenerator  SaltGenerator
+	orderVersion   int
+	exchangeAddr   string
+	negRiskAddr    string
+	builderCode    string
 	cache          *clientCache
 	geoblockHost   string
 	geoblockClient *transport.Client
@@ -50,6 +54,10 @@ type orderDefaults struct {
 	signatureType auth.SignatureType
 	funder        *types.Address
 	saltGenerator SaltGenerator
+	orderVersion  int
+	exchangeAddr  string
+	negRiskAddr   string
+	builderCode   string
 }
 
 func (c *clientImpl) cloneWithTransport(httpClient *transport.Client) *clientImpl {
@@ -62,6 +70,10 @@ func (c *clientImpl) cloneWithTransport(httpClient *transport.Client) *clientImp
 		authNonce:         c.authNonce,
 		funder:            c.funder,
 		saltGenerator:     c.saltGenerator,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    nil,
@@ -108,6 +120,7 @@ func NewClientWithGeoblock(httpClient *transport.Client, geoblockHost string) Cl
 		authNonce:      nil,
 		funder:         nil,
 		saltGenerator:  nil,
+		orderVersion:   2,
 		// builderCfg is nil by default (Opt-in)
 		rfq:       rfq.NewClient(httpClient),
 		heartbeat: heartbeat.NewClient(httpClient),
@@ -185,6 +198,10 @@ func (c *clientImpl) WithSignatureType(sigType auth.SignatureType) Client {
 		authNonce:         c.authNonce,
 		funder:            c.funder,
 		saltGenerator:     c.saltGenerator,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    c.geoblockClient,
@@ -206,6 +223,10 @@ func (c *clientImpl) WithAuthNonce(nonce int64) Client {
 		authNonce:         &nonce,
 		funder:            c.funder,
 		saltGenerator:     c.saltGenerator,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    c.geoblockClient,
@@ -227,6 +248,10 @@ func (c *clientImpl) WithFunder(funder types.Address) Client {
 		authNonce:         c.authNonce,
 		funder:            &funder,
 		saltGenerator:     c.saltGenerator,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    c.geoblockClient,
@@ -248,6 +273,10 @@ func (c *clientImpl) WithSaltGenerator(gen SaltGenerator) Client {
 		authNonce:         c.authNonce,
 		funder:            c.funder,
 		saltGenerator:     gen,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    c.geoblockClient,
@@ -256,6 +285,28 @@ func (c *clientImpl) WithSaltGenerator(gen SaltGenerator) Client {
 		heartbeat:         c.heartbeat,
 		heartbeatInterval: c.heartbeatInterval,
 	}
+}
+
+// WithOrderVersion sets the default order signing protocol version.
+func (c *clientImpl) WithOrderVersion(version int) Client {
+	newC := c.cloneWithTransport(c.httpClient)
+	newC.orderVersion = version
+	return newC
+}
+
+// WithExchangeAddresses overrides the normal and negative-risk exchange contracts.
+func (c *clientImpl) WithExchangeAddresses(exchangeAddress, negRiskExchangeAddress string) Client {
+	newC := c.cloneWithTransport(c.httpClient)
+	newC.exchangeAddr = exchangeAddress
+	newC.negRiskAddr = negRiskExchangeAddress
+	return newC
+}
+
+// WithBuilderCode sets the default V2 builder code embedded in signed orders.
+func (c *clientImpl) WithBuilderCode(builderCode string) Client {
+	newC := c.cloneWithTransport(c.httpClient)
+	newC.builderCode = builderCode
+	return newC
 }
 
 // WithUseServerTime configures the transport to use server time for timestamps.
@@ -289,6 +340,10 @@ func (c *clientImpl) WithWS(ws ws.Client) Client {
 		authNonce:         c.authNonce,
 		funder:            c.funder,
 		saltGenerator:     c.saltGenerator,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    c.geoblockClient,
@@ -309,6 +364,10 @@ func (c *clientImpl) WithHeartbeatInterval(interval time.Duration) Client {
 		authNonce:         c.authNonce,
 		funder:            c.funder,
 		saltGenerator:     c.saltGenerator,
+		orderVersion:      c.orderVersion,
+		exchangeAddr:      c.exchangeAddr,
+		negRiskAddr:       c.negRiskAddr,
+		builderCode:       c.builderCode,
 		cache:             c.cache,
 		geoblockHost:      c.geoblockHost,
 		geoblockClient:    c.geoblockClient,
@@ -326,6 +385,10 @@ func (c *clientImpl) orderDefaults() orderDefaults {
 		signatureType: c.signatureType,
 		funder:        c.funder,
 		saltGenerator: c.saltGenerator,
+		orderVersion:  c.orderVersion,
+		exchangeAddr:  c.exchangeAddr,
+		negRiskAddr:   c.negRiskAddr,
+		builderCode:   c.builderCode,
 	}
 }
 
