@@ -46,6 +46,12 @@ func TestBuildOrderPayloadCasingAndOptions(t *testing.T) {
 	if got := payload["orderType"]; got != clobtypes.OrderTypeGTC {
 		t.Fatalf("orderType mismatch: got %v", got)
 	}
+	if got := payload["postOnly"]; got != true {
+		t.Fatalf("postOnly mismatch: got %v", got)
+	}
+	if got := payload["deferExec"]; got != false {
+		t.Fatalf("deferExec mismatch: got %v", got)
+	}
 
 	orderMap, ok := payload["order"].(map[string]interface{})
 	if !ok {
@@ -89,6 +95,12 @@ func TestBuildOrderPayloadV2Fields(t *testing.T) {
 	payload, err := buildOrderPayload(&order)
 	if err != nil {
 		t.Fatalf("buildOrderPayload failed: %v", err)
+	}
+	if got := payload["postOnly"]; got != false {
+		t.Fatalf("postOnly mismatch: got %v", got)
+	}
+	if got := payload["deferExec"]; got != false {
+		t.Fatalf("deferExec mismatch: got %v", got)
 	}
 	orderMap := payload["order"].(map[string]interface{})
 	for _, key := range []string{"timestamp", "metadata", "builder", "expiration", "signature"} {

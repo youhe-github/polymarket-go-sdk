@@ -60,15 +60,21 @@ V2 订单提交 payload 当前包含：
 - `makerAmount`
 - `takerAmount`
 - `side`
+- `expiration`
 - `signatureType`
 - `timestamp`
-- `expiration`
 - `metadata`
 - `builder`
 - `signature`
 
+V2 顶层提交 payload 会始终带上：
+
+- `postOnly`
+- `deferExec`
+
 注意：`expiration` 仍然会出现在提交给 API 的 payload 中，但不会进入 V2
-EIP-712 签名消息。
+EIP-712 签名消息。`nonce` / `feeRateBps` 不属于 V2 signed order，也不会在
+V2 order payload 中发送。
 
 ### 交易所合约地址
 

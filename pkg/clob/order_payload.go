@@ -22,16 +22,21 @@ func buildOrderPayload(order *clobtypes.SignedOrder) (map[string]interface{}, er
 		return nil, err
 	}
 
+	postOnly := false
+	if order.PostOnly != nil {
+		postOnly = *order.PostOnly
+	}
+	deferExec := false
+	if order.DeferExec != nil {
+		deferExec = *order.DeferExec
+	}
+
 	payload := map[string]interface{}{
 		"order":     orderMap,
 		"owner":     order.Owner,
 		"orderType": orderType,
-	}
-	if order.PostOnly != nil {
-		payload["postOnly"] = *order.PostOnly
-	}
-	if order.DeferExec != nil {
-		payload["deferExec"] = *order.DeferExec
+		"postOnly":  postOnly,
+		"deferExec": deferExec,
 	}
 	return payload, nil
 }
@@ -96,9 +101,9 @@ func orderWithSignature(order *clobtypes.SignedOrder) (map[string]interface{}, e
 			"makerAmount":   decimalString(order.Order.MakerAmount),
 			"takerAmount":   decimalString(order.Order.TakerAmount),
 			"side":          side,
+			"expiration":    u256String(order.Order.Expiration),
 			"signatureType": sigType,
 			"timestamp":     u256String(order.Order.Timestamp),
-			"expiration":    u256String(order.Order.Expiration),
 			"metadata":      metadata,
 			"builder":       builderCode,
 			"signature":     order.Signature,
